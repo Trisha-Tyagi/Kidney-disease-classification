@@ -3,7 +3,7 @@ import gdown
 from cnnClassifier import logger
 import zipfile
 from cnnClassifier.utils.common import get_size
-from cnnClassifier.entity.entity_data_ingestion import DataIngestionConfig
+from cnnClassifier.entity.config_entity import DataIngestionConfig
 
 
 class  DataIngestion:
@@ -25,7 +25,7 @@ class  DataIngestion:
                     url=self.config.source_URL,
                     output=zip_folder_dir,
                     quiet=False,
-                    fuzzy=True
+                    
                 )
                 logger.info(f"Downloading data from {url} to {zip_folder_dir}")
 
