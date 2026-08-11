@@ -1,29 +1,28 @@
 from cnnClassifier.config.configuration import ConfigurationManager
-from cnnClassifier.components.Train_model import Training
+from cnnClassifier.components.model_evaluation import Evaluation
 from cnnClassifier import logger
 
 
-STAGE_NAME="Train Model"
+STAGE_NAME="Evaluate Model"
 
 
-class train_model_Pipleline:
+class Model_evaluation_pipeline:
     def __init__(self):
         pass
 
     def main(self):
         config = ConfigurationManager()
-        training_config = config.get_training_config()
-        training = Training(config=training_config)
-        training.get_base_model()
-        training.train_valid_generator()
-        training.train()
+        evaluation_config = config.get_evaluation_config()
+        evaluation = Evaluation(config=evaluation_config)
+        evaluation.evaluation()
+        evaluation.save_score()
         
 
 
 if __name__=='__main__':
     try:
         logger.info(f">>>>>> stage {STAGE_NAME} started <<<<<<")
-        obj=train_model_Pipleline()
+        obj=Model_evaluation_pipeline()
         obj.main()
         logger.info(f">>>>>> stage {STAGE_NAME} completed <<<<<<\n\nx==========x")
     except Exception as e:
