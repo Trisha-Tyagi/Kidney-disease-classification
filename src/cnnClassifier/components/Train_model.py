@@ -5,15 +5,25 @@ import tensorflow as tf
 import time
 from cnnClassifier.entity.config_entity import TrainingConfig
 from pathlib import Path
+from tensorflow.keras.callbacks import ModelCheckpoint,ReduceLROnPlateau,EarlyStopping
 
 class Training:
     def __init__(self, config: TrainingConfig):
         self.config = config
-
+# CHECKPOINT_PATH = "/content/drive/MyDrive/kidney_checkpoints_4class/best_model.h5"
     
     def get_base_model(self):
         self.model = tf.keras.models.load_model(
-            self.config.updated_base_model_path
+        self.config.updated_base_model_path,
+        compile=False
+        )
+
+        self.model.compile(
+            optimizer=tf.keras.optimizers.SGD(
+                learning_rate=self.config.params_learning_rate
+            ),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
+            metrics=["accuracy"]
         )
 
     def train_valid_generator(self):
@@ -67,15 +77,33 @@ class Training:
 
 
     def train(self):
-        self.steps_per_epoch = self.train_generator.samples // self.train_generator.batch_size
-        self.validation_steps = self.valid_generator.samples // self.valid_generator.batch_size
+        checkpoint = ModelCheckpoint(
+        filepath="/content/drive/MyDrive/kidney_checkpoints_4class/best_model.h5",
+        monitor="val_accuracy",
+        mode="max",
+        save_best_only=True,
+        verbose=1
+    )
+
+        early_stop=EarlyStopping(
+        monitor="val_loss",
+        patience=5,
+        restore_best_weights=True
+    )
+
+        reduce_lr = ReduceLROnPlateau(
+        monitor="val_loss",
+        factor=0.5,
+        patience=3,
+        min_lr=1e-7,
+        verbose=1
+        )
 
         self.model.fit(
-            self.train_generator,
-            epochs=self.config.params_epochs,
-            steps_per_epoch=self.steps_per_epoch,
-            validation_steps=self.validation_steps,
-            validation_data=self.valid_generator
+        self.train_generator,
+        epochs=self.config.params_epochs,
+        validation_data=self.valid_generator,
+        callbacks=[checkpoint,reduce_lr ,early_stop]
         )
 
         self.save_model(
